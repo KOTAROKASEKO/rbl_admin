@@ -465,7 +465,7 @@ class _ReservationListViewState extends State<ReservationListView> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => ReservationDetailsPage(reservation: reservation),
+                builder: (context) => ReservationDetailsPage(reservation: reservation,),
               ),
             );
           },

@@ -23,6 +23,7 @@ class _ReservationDetailsPageState extends State<ReservationDetailsPage> {
   String? status;
   String? id;
   String? treatment;
+  String? usedMachine;
   String? DateOfReservation;
   String? startTime;
   String? reservationId;
@@ -43,6 +44,7 @@ class _ReservationDetailsPageState extends State<ReservationDetailsPage> {
           treatment = reservationDoc.data()?['treatment'];
           DateOfReservation = reservationDoc.data()?['date'];
           startTime = reservationDoc.data()?['start'];
+          usedMachine = reservationDoc.data()?['usedMachine'];
           reservationId = reservationDoc.id;
         });
       } else {
@@ -57,7 +59,7 @@ class _ReservationDetailsPageState extends State<ReservationDetailsPage> {
   Future<void> cancelSameRequest() async{
 
     QuerySnapshot snapshot = await FirebaseFirestore.instance.collection('reservations')
-      .where('treatment', isEqualTo: treatment)
+      .where('usedMachine', isEqualTo: usedMachine)
       .where('date', isEqualTo: DateOfReservation)
       .where('start', isEqualTo: startTime)
       .where('status',isEqualTo: 'pending')
@@ -102,6 +104,7 @@ class _ReservationDetailsPageState extends State<ReservationDetailsPage> {
           .update({'status': 'declined'});
           await Firebaseapi.sendNotificationToAdmins('Request declined', 'We are sorry, we couldn\'t confirm your reservation', id!);
       // Consider showing a success message
+      
       Navigator.pop(context);
     } catch (e) {
       print('Error confirming reservation: $e');

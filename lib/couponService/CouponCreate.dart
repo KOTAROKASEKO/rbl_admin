@@ -76,11 +76,13 @@ class _CouponCreateViewState extends State<CouponCreateView> {
     try {
       final imageBytes = await file.readAsBytes();
       final compressedImage = await FlutterImageCompress.compressWithList(
+
         imageBytes,
         format: CompressFormat.webp,
         minWidth: 800,
         minHeight: 600,
         quality: 75,
+        
       );
 
       final tempDir = Directory.systemTemp;
@@ -109,12 +111,14 @@ class _CouponCreateViewState extends State<CouponCreateView> {
       await uploadImage(context);
 
       await FirebaseFirestore.instance.collection('coupons').doc(couponId).set({
+        'isForEveryone':true,
         'couponId': couponId,
         'description': _descriptionController.text,
         'discountType': _discountType,
         'discountValue': int.parse(_discountValueController.text),
         'validUntil': _validUntil,
         'imageUrl': downloadUrl,
+        'whoUsed':[],
       });
 
       ScaffoldMessenger.of(context).showSnackBar(

@@ -16,7 +16,6 @@ class couponCloudService{
       DocumentReference userCouponRef = userDoc.reference.collection('coupons').doc(couponId);
       batch.set(userCouponRef, {'isUsed': false});
     }
-
     // Commit batch
     await batch.commit();
     print("Coupon added to all users");

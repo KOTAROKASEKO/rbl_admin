@@ -6,6 +6,7 @@ import 'package:rbl_admin/BottomTab.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
+  
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   await Supabase.initialize(
@@ -20,6 +21,7 @@ void main() async {
 class MyApp extends StatelessWidget {
   final bool isLoggedIn;
   MyApp({required this.isLoggedIn});
+  
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
