@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
+import 'package:rbl_admin/main.dart';
 import 'package:rbl_admin/reservation/reservationDetail.dart';
 import 'package:intl/intl.dart';
 
@@ -45,7 +46,7 @@ class ReservationListView extends StatefulWidget {
   _ReservationListViewState createState() => _ReservationListViewState();
 }
 
-class _ReservationListViewState extends State<ReservationListView> {
+class _ReservationListViewState extends State<ReservationListView> with RouteAware{
   final List<Reservation> reservations = [];
   final List<Reservation> filteredReservations =[];
   final List<String> statusOptions = ["pending", "confirmed", "declined",'Any',];
@@ -116,6 +117,31 @@ class _ReservationListViewState extends State<ReservationListView> {
     }
   }
 
+   void didChangeDependencies() {
+    super.didChangeDependencies();
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  @override
+  void didPush() {
+    
+  }
+
+  @override
+  void didPopNext() async{
+    // Covering route was popped off the navigator.
+    await fetchReservationsWithDefaultCondition(false);
+      setState(() {
+
+        reservations;
+      });
+  }
 
   void applyFilter() {
     String status;

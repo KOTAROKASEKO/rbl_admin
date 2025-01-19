@@ -27,6 +27,7 @@ class _ReservationDetailsPageState extends State<ReservationDetailsPage> {
   String? DateOfReservation;
   String? startTime;
   String? reservationId;
+  bool isLoading = false;
 
   Future<void> fetchData() async {
     try {
@@ -34,6 +35,7 @@ class _ReservationDetailsPageState extends State<ReservationDetailsPage> {
       final userDoc = await _firestore.collection('userData').doc(widget.reservation.userId).get();
 
       if (reservationDoc.exists && userDoc.exists) {
+
         setState(() {
           name = userDoc.data()?['name'];
           id = userDoc.data()?['userId'];
@@ -47,6 +49,7 @@ class _ReservationDetailsPageState extends State<ReservationDetailsPage> {
           usedMachine = reservationDoc.data()?['usedMachine'];
           reservationId = reservationDoc.id;
         });
+
       } else {
         print('Reservation or user data not found.');
         // Consider showing an error message to the user
@@ -58,6 +61,7 @@ class _ReservationDetailsPageState extends State<ReservationDetailsPage> {
 
   Future<void> cancelSameRequest() async{
 
+    
     QuerySnapshot snapshot = await FirebaseFirestore.instance.collection('reservations')
       .where('usedMachine', isEqualTo: usedMachine)
       .where('date', isEqualTo: DateOfReservation)
@@ -72,7 +76,6 @@ class _ReservationDetailsPageState extends State<ReservationDetailsPage> {
 
         //along with the notification, update the reservation status
         cancelReservation(doc.id);
-        
       }
     }
   }
@@ -80,16 +83,19 @@ class _ReservationDetailsPageState extends State<ReservationDetailsPage> {
 
   Future<void> confirmReservation(String reservationid) async {
     try {
+      setState(() {
+        isLoading=true;
+      });
+      
       await _firestore
           .collection('reservations')
           .doc(reservationid)
           .update({'status': 'confirmed'});
 
       await Firebaseapi.sendNotificationToAdmins('Reservation', 'Your Reservation was confirmed', id!);
-      //cancell reservation that was made for the same slot, same time
+      //cancell reservation that was made for the same slot, same time, sane nachine
       cancelSameRequest();
-      
-      Navigator.pop(context);
+      Navigator.of(context).pop();
     } catch (e) {
       print('Error confirming reservation: $e');
       // Consider showing an error message to the user
@@ -98,6 +104,10 @@ class _ReservationDetailsPageState extends State<ReservationDetailsPage> {
 
   Future<void> cancelReservation(String reservationid) async {
     try {
+      setState(() {
+        isLoading = true;
+      });
+      
       await _firestore
           .collection('reservations')
           .doc(reservationid)
@@ -105,7 +115,7 @@ class _ReservationDetailsPageState extends State<ReservationDetailsPage> {
           await Firebaseapi.sendNotificationToAdmins('Request declined', 'We are sorry, we couldn\'t confirm your reservation', id!);
       // Consider showing a success message
       
-      Navigator.pop(context);
+      
     } catch (e) {
       print('Error confirming reservation: $e');
       // Consider showing an error message to the user
@@ -117,7 +127,7 @@ class _ReservationDetailsPageState extends State<ReservationDetailsPage> {
     super.initState();
     fetchData();
   }
-// for user details
+
   Widget _buildUserDetailsRow(String title, String? value) {
     return Row(children: [Text('$title: $value')]);
   }
@@ -138,7 +148,18 @@ class _ReservationDetailsPageState extends State<ReservationDetailsPage> {
       appBar: AppBar(
         title: const Text('Reservation Details'),
       ),
-      body: LiquidPullToRefresh(
+      body:isLoading?
+      Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(),
+            Text('trying to update'),
+          ],
+        ),
+      )
+      :
+      LiquidPullToRefresh(
         onRefresh: fetchData,
         child: Padding(
           padding: const EdgeInsets.all(20),
@@ -165,8 +186,9 @@ class _ReservationDetailsPageState extends State<ReservationDetailsPage> {
                     ),
                     child: const Center(child: Text('Confirm')),
                   ),
-                  onTap: () {
-                    confirmReservation(widget.reservation.reservationId);
+                  onTap: () async{
+                    await confirmReservation(widget.reservation.reservationId);
+                    Navigator.of(context).pop();
                   },
                 ),
                   GestureDetector(
@@ -179,9 +201,10 @@ class _ReservationDetailsPageState extends State<ReservationDetailsPage> {
                       ),
                       child: const Center(child: Text('cancel')),
                     ),
-                    onTap: () {
+                    onTap: () async{
                       print('reservation id is ${reservationId}');
-                      cancelReservation(widget.reservation.reservationId);
+                      await cancelReservation(widget.reservation.reservationId);
+                      Navigator.of(context).pop();
                     },
                   ),
                 ])
