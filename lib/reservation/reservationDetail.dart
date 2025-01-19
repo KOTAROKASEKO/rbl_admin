@@ -61,7 +61,6 @@ class _ReservationDetailsPageState extends State<ReservationDetailsPage> {
 
   Future<void> cancelSameRequest() async{
 
-    
     QuerySnapshot snapshot = await FirebaseFirestore.instance.collection('reservations')
       .where('usedMachine', isEqualTo: usedMachine)
       .where('date', isEqualTo: DateOfReservation)
@@ -71,10 +70,6 @@ class _ReservationDetailsPageState extends State<ReservationDetailsPage> {
 
     for (var doc in snapshot.docs) {
       if(!(doc.id == reservationId)){
-        //cancel other reservation that was reserved at the sametiming with same treatment
-        Firebaseapi.sendNotificationToAdmins('Reservation update', 'We are sorry, but your request couldn\'n be confirmed', doc['userId']);
-
-        //along with the notification, update the reservation status
         cancelReservation(doc.id);
       }
     }
@@ -95,6 +90,7 @@ class _ReservationDetailsPageState extends State<ReservationDetailsPage> {
       await Firebaseapi.sendNotificationToAdmins('Reservation', 'Your Reservation was confirmed', id!);
       //cancell reservation that was made for the same slot, same time, sane nachine
       await cancelSameRequest();
+      Navigator.of(context).pop();
     } catch (e) {
       print('Error confirming reservation: $e');
       // Consider showing an error message to the user
@@ -180,9 +176,78 @@ class _ReservationDetailsPageState extends State<ReservationDetailsPage> {
                     ),
                     child: const Center(child: Text('Confirm')),
                   ),
-                  onTap: () async{
-                    await confirmReservation(widget.reservation.reservationId);
-                    Navigator.of(context).pop();
+                  onTap: () async {
+                    showDialog(
+                      context: context, // Ensure you have access to the context
+                      builder: (BuildContext context) {
+                        return Dialog(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Container(
+                            width: 200,
+                            height: 300,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              color: Colors.white,
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                SizedBox(height: 10),
+                                Text('Warning!',style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),),
+                                Padding(
+                                  padding: EdgeInsets.all(10),
+                                  child: Text(
+                                    'Confirming this reservation will cancel other reservations that use same machine at same time, same day',
+                                    textAlign: TextAlign.center,
+                                    maxLines: 5,
+                                  ),
+                                ),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    GestureDetector(
+                                      onTap: () {
+                                        Navigator.of(context).pop(); // Close the dialog on 'No'
+                                      },
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          color: Colors.amberAccent,
+                                          borderRadius: BorderRadius.circular(5),
+                                        ),
+                                        padding: EdgeInsets.all(10),
+                                        child: Text(
+                                          'No',
+                                          style: TextStyle(color: Colors.black),
+                                        ),
+                                      ),
+                                    ),
+                                    GestureDetector(
+                                      onTap: () async {
+                                        await confirmReservation(widget.reservation.reservationId);
+                                        Navigator.of(context).pop(); // Close the dialog on 'Yes'
+                                      },
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          color: Color.fromARGB(255, 142, 177, 255),
+                                          borderRadius: BorderRadius.circular(5),
+                                        ),
+                                        padding: EdgeInsets.all(10),
+                                        child: Text(
+                                          'Yes',
+                                          style: TextStyle(color: Colors.white),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    );
                   },
                 ),
                   GestureDetector(
@@ -196,7 +261,6 @@ class _ReservationDetailsPageState extends State<ReservationDetailsPage> {
                       child: const Center(child: Text('cancel')),
                     ),
                     onTap: () async{
-                      print('reservation id is ${reservationId}');
                       await cancelReservation(widget.reservation.reservationId);
                       Navigator.of(context).pop();
                     },

@@ -117,7 +117,8 @@ class _ReservationListViewState extends State<ReservationListView> with RouteAwa
     }
   }
 
-   void didChangeDependencies() {
+   @override
+     void didChangeDependencies() {
     super.didChangeDependencies();
     routeObserver.subscribe(this, ModalRoute.of(context)!);
   }
@@ -249,8 +250,6 @@ class _ReservationListViewState extends State<ReservationListView> with RouteAwa
       filteredReservations;
     });
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -456,9 +455,10 @@ class _ReservationListViewState extends State<ReservationListView> with RouteAwa
         ],
       ),
       body: isLoading?
-          Center(
-            child: CircularProgressIndicator(),
-          ):
+      Center(
+        child: CircularProgressIndicator(),
+      )
+      :
       LiquidPullToRefresh(
         color: Colors.lightGreenAccent,
         animSpeedFactor: 20.0,
