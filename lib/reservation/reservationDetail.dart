@@ -94,8 +94,7 @@ class _ReservationDetailsPageState extends State<ReservationDetailsPage> {
 
       await Firebaseapi.sendNotificationToAdmins('Reservation', 'Your Reservation was confirmed', id!);
       //cancell reservation that was made for the same slot, same time, sane nachine
-      cancelSameRequest();
-      Navigator.of(context).pop();
+      await cancelSameRequest();
     } catch (e) {
       print('Error confirming reservation: $e');
       // Consider showing an error message to the user
@@ -104,17 +103,12 @@ class _ReservationDetailsPageState extends State<ReservationDetailsPage> {
 
   Future<void> cancelReservation(String reservationid) async {
     try {
-      setState(() {
-        isLoading = true;
-      });
       
       await _firestore
           .collection('reservations')
           .doc(reservationid)
           .update({'status': 'declined'});
           await Firebaseapi.sendNotificationToAdmins('Request declined', 'We are sorry, we couldn\'t confirm your reservation', id!);
-      // Consider showing a success message
-      
       
     } catch (e) {
       print('Error confirming reservation: $e');
